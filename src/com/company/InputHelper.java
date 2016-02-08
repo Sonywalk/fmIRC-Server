@@ -19,9 +19,21 @@ public class InputHelper {
         else if (input.startsWith("NICK")) {
             nicknameRequest(input.replace("NICK", "").trim());
         }
+        else if (input.startsWith("PRIVMSG")) {  //"PRIVMSG to :message" from client
+            privateMessageRequest(input);
+        }
         else {
             ServerConnection.broadcastMessage("MESSAGE " + client.getNickname() + ":" + input);
         }
+    }
+
+    private void privateMessageRequest(String input) throws IOException {
+        int index = input.indexOf(":");
+        String to = input.substring(0, index).replace("PRIVMSG", "").trim();
+        String message = input.substring(index + 1, input.length());
+         //"PRIVMSG from@to :message
+        ServerConnection.privateMessage(to, "PRIVMSG " + client.getNickname() + "@" + to + " :" + message);
+        client.write("RESPONSEPRIVMSG " + to + " :" + message); //Echo back to the client who sent the message
     }
 
     private void nicknameRequest(String nick) throws IOException {

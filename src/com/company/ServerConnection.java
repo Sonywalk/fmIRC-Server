@@ -60,4 +60,8 @@ public class ServerConnection {
     public static void removeClient(String nick) {
         clients.remove(nick);
     }
+
+    public static void privateMessage(String to, String msg) throws IOException {
+        clients.get(to).write(msg);
+    }
 }

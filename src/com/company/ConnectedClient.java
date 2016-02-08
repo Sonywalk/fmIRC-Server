@@ -35,6 +35,11 @@ public class ConnectedClient implements Runnable {
             }
             disconnect();
         } catch (IOException e) {
+            try {
+                disconnect();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             e.printStackTrace();
         }
     }
