@@ -8,6 +8,13 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 
+#folders
+.idea/workspace.xml
+.idea/tasks.xml
+*.iml
+out/*
+src/META-INF
+
 # Windows Installer files
 *.cab
 *.msi
