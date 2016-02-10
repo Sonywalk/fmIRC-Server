@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
  * Created by LanfeaR on 2016-02-07.
@@ -13,17 +14,22 @@ public class InputHelper {
     }
 
     public void processInput(String input) throws IOException {
-        if (client.getNickname() == null) {
-            client.write("NICK?");
-        }
-        else if (input.startsWith("NICK")) {
-            nicknameRequest(input.replace("NICK", "").trim());
-        }
-        else if (input.startsWith("PRIVMSG")) {  //"PRIVMSG to :message" from client
-            privateMessageRequest(input);
+        //If a client is connected (has has a valid nickname) he can do other requests such as messaging
+        if (client.isConnected()) {
+            if (input.startsWith("PRIVMSG")) {  //"PRIVMSG [to] :[message]" from client
+                privateMessageRequest(input);
+            }
+            else {
+                ServerConnection.broadcastMessage("MESSAGE " + client.getNickname() + ":" + input);
+            }
         }
         else {
-            ServerConnection.broadcastMessage("MESSAGE " + client.getNickname() + ":" + input);
+            if (input.startsWith("NICK")) {
+                nicknameRequest(input);
+            }
+            else {
+                client.write("ERROR you need a nickname, command: NICK [your_nickname]");
+            }
         }
     }
 
@@ -31,13 +37,19 @@ public class InputHelper {
         int index = input.indexOf(":");
         String to = input.substring(0, index).replace("PRIVMSG", "").trim();
         String message = input.substring(index + 1, input.length());
-         //"PRIVMSG from@to :message
-        ServerConnection.privateMessage(to, "PRIVMSG " + client.getNickname() + "@" + to + " :" + message);
-        client.write("RESPONSEPRIVMSG " + to + " :" + message); //Echo back to the client who sent the message
+        String output = "PRIVMSG " + client.getNickname() + "@" + to + " :" + message; //respond to clients with: "PRIVMSG [from]@[to] :[message]
+        ServerConnection.privateMessage(to, output);
+        client.write(output);
     }
 
-    private void nicknameRequest(String nick) throws IOException {
+    private void nicknameRequest(String input) throws IOException {
+        String nick = input.replace("NICK ", "");
+        if (Pattern.compile("[+/\\@:\\s]+").matcher(nick).find() || nick.length() < 3) { //if nick contains any of the chars it will return true
+            client.write("NICK TAKEN");
+            return;
+        }
         if (ServerConnection.addClient(client, nick)) {
+            System.out.println("Added client " + nick);
             client.setNickname(nick);
             client.setIsConnected(true); //The client should not be considered connected until he has a nickname
             client.write("NICK OK");

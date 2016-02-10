@@ -14,7 +14,6 @@ public class ConnectedClient implements Runnable {
     private boolean isConnected;
 
     public ConnectedClient(Socket clientSocket) throws IOException {
-        nickname = "";
         this.clientSocket = clientSocket;
         this.out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
         write("NICK?");
@@ -64,7 +63,7 @@ public class ConnectedClient implements Runnable {
         return this.nickname;
     }
     public boolean isConnected() {
-        return isConnected;
+        return this.isConnected;
     }
     public void setIsConnected(boolean isConnected) {
         this.isConnected = isConnected;

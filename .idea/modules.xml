@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/fmIRCServer.iml" filepath="$PROJECT_DIR$/fmIRCServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fmIRC-Server.iml" filepath="$PROJECT_DIR$/fmIRC-Server.iml" />
     </modules>
   </component>
 </project>
