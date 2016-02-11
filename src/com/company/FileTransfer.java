@@ -3,11 +3,8 @@ package com.company;
 import javax.swing.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import com.google.common.io.ByteStreams;
 
 /**
  * Created by LanfeaR on 2016-02-11.
