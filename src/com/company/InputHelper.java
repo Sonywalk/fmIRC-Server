@@ -19,6 +19,12 @@ public class InputHelper {
             if (input.startsWith("PRIVMSG")) {  //"PRIVMSG [to] :[message]" from client
                 privateMessageRequest(input);
             }
+            else if (input.startsWith("GET")) {
+                getFile(input);
+            }
+            else if (input.startsWith("SENDING")) {
+                sendingFile(input);
+            }
             else {
                 ServerConnection.broadcastMessage("MESSAGE " + client.getNickname() + ":" + input);
             }
@@ -49,7 +55,6 @@ public class InputHelper {
             return;
         }
         if (ServerConnection.addClient(client, nick)) {
-            System.out.println("Added client " + nick);
             client.setNickname(nick);
             client.setIsConnected(true); //The client should not be considered connected until he has a nickname
             client.write("NICK OK");
@@ -63,5 +68,20 @@ public class InputHelper {
         else {
             client.write("NICK TAKEN");
         }
+    }
+    private void getFile(String input) throws IOException {
+        FileTransfer t = new FileTransfer();
+        t.execute();
+        int index = input.indexOf(":");
+        String filename = input.substring(index + 1, input.length());
+        String to = input.substring(0, index).replace("GET", "").trim();
+        ServerConnection.privateMessage(to, "GET " + client.getNickname() + " :" + filename);
+    }
+    private void sendingFile(String input) throws IOException {
+        int index = input.indexOf(":");
+        String filename = input.substring(index+1, input.indexOf("-")).trim();
+        String size = input.substring(input.indexOf("-")+1, input.length());
+        String to = input.substring(0, index).replace("SENDING", "").trim();
+        ServerConnection.privateMessage(to, "SENDING :" + filename + " -" + size);
     }
 }
