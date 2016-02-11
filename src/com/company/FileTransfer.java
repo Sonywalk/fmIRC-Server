@@ -33,9 +33,10 @@ public class FileTransfer extends SwingWorker<Void, Void> {
                 bout = new BufferedOutputStream(receiver.getOutputStream());
             }
         }
-        int b;
-        while ((b = bin.read()) != -1) {
-            bout.write(b);
+        byte[] buff = new byte[8 * 1024];
+        int len;
+        while ((len = bin.read(buff)) != -1) {
+            bout.write(buff, 0, len);
         }
         bout.flush();
         bout.close();
