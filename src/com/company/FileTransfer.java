@@ -15,6 +15,7 @@ public class FileTransfer extends SwingWorker<Void, Void> {
     private final static int PORT = 1338;
     private Socket receiver = null;
     private Socket sender = null;
+    private final static int BUFF_SIZE = 8*1024;
 
     @Override
     protected Void doInBackground() throws Exception {
@@ -30,10 +31,16 @@ public class FileTransfer extends SwingWorker<Void, Void> {
                 bout = new BufferedOutputStream(receiver.getOutputStream());
             }
         }
-        byte[] buff = new byte[8 * 1024];
+        byte[] buff = new byte[BUFF_SIZE];
         int len;
         while ((len = bin.read(buff)) != -1) {
-            bout.write(buff, 0, len);
+            try {
+                bout.write(buff, 0, len);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
         bout.flush();
         bout.close();

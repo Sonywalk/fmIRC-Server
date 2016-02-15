@@ -25,6 +25,9 @@ public class InputHelper {
             else if (input.startsWith("SENDING")) {
                 sendingFile(input);
             }
+            else if (input.startsWith("LIST")) {
+                list(input);
+            }
             else {
                 ServerConnection.broadcastMessage("MESSAGE " + client.getNickname() + ":" + input);
             }
@@ -79,9 +82,13 @@ public class InputHelper {
     }
     private void sendingFile(String input) throws IOException {
         int index = input.indexOf(":");
-        String filename = input.substring(index+1, input.indexOf("-")).trim();
-        String size = input.substring(input.indexOf("-")+1, input.length());
+        String filename = input.substring(index+1, input.indexOf("/")).trim();
+        String size = input.substring(input.indexOf("/")+1, input.length());
         String to = input.substring(0, index).replace("SENDING", "").trim();
-        ServerConnection.privateMessage(to, "SENDING :" + filename + " -" + size);
+        ServerConnection.privateMessage(to, "SENDING :" + filename + " /" + size);
+    }
+    private void list(String input) throws IOException {
+        String to = input.replace("LIST", "").trim();
+        ServerConnection.privateMessage(to, "LIST " + client.getNickname());
     }
 }
