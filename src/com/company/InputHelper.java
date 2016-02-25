@@ -14,10 +14,11 @@ public class InputHelper {
     }
 
     public void processInput(String input) throws IOException {
+        System.out.println(input);
         //If a client is connected (has has a valid nickname) he can do other requests such as messaging
         if (client.isConnected()) {
-            if (input.startsWith("PRIVMSG")) {  //"PRIVMSG [to] :[message]" from client
-                privateMessageRequest(input);
+            if (input.startsWith("MSG")) {  //"PRIVMSG [to] :[message]" from client
+                messageRequest(input);
             }
             else if (input.startsWith("GET")) {
                 getFile(input);
@@ -28,8 +29,11 @@ public class InputHelper {
             else if (input.startsWith("LIST")) {
                 list(input);
             }
-            else {
-                ServerConnection.broadcastMessage("MESSAGE " + client.getNickname() + ":" + input);
+            else if (input.startsWith("JOIN")) {
+                join(input);
+            }
+            else if (input.startsWith("QUIT")) {
+                quit(input);
             }
         }
         else {
@@ -42,13 +46,54 @@ public class InputHelper {
         }
     }
 
-    private void privateMessageRequest(String input) throws IOException {
+    private void quit(String input) throws IOException {
+        String[] parts = input.split(" "); //QUIT [channel] [nickname]
+        String channelId = parts[1];
+        String nickname = parts[2];
+        Channel channel = ServerConnection.getChannel(channelId);
+        channel.removeFromOnlineList(ServerConnection.getClient(nickname));
+        client.removeJoinedChannel(channel.getId());
+        if (channel.getOnlineList().isEmpty()) {
+            ServerConnection.removeChannel(channel.getId());
+        }
+        for (ConnectedClient c : channel.getOnlineList()) {
+            c.write("QUIT " + channel.getId() + " " + nickname);
+        }
+    }
+    private void join(String input) {
+        try {
+            String channelId = input.replace("JOIN ", "");
+            if (!channelId.startsWith("#")) {
+                client.write("ERROR channel name must start with '#'");
+                return;
+            }
+            Channel channel = ServerConnection.addChannel(channelId);
+            client.addJoinedChannel(channel.getId());
+            for (ConnectedClient c : channel.getOnlineList()) {
+                c.write("JOINED " + channel.getId() + " " +  client.getNickname());
+            }
+            channel.addToOnlineList(client);
+            for (ConnectedClient c : channel.getOnlineList()) {
+                client.write("JOINED " + channel.getId() + " " + c.getNickname());
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void messageRequest(String input) throws IOException {
         int index = input.indexOf(":");
-        String to = input.substring(0, index).replace("PRIVMSG", "").trim();
+        String to = input.substring(0, index).replace("MSG", "").trim();
         String message = input.substring(index + 1, input.length());
-        String output = "PRIVMSG " + client.getNickname() + "@" + to + " :" + message; //respond to clients with: "PRIVMSG [from]@[to] :[message]
-        ServerConnection.privateMessage(to, output);
-        client.write(output);
+        String output = "MSG " + client.getNickname() + "@" + to + " :" + message; //respond to clients with: "MSG [from]@[to] :[message]
+        if (to.startsWith("#")) {
+            ServerConnection.channelMessage(to, output);
+        }
+        else {
+            ServerConnection.privateMessage(to, output);
+            client.write(output);
+        }
     }
 
     private void nicknameRequest(String input) throws IOException {
@@ -61,12 +106,6 @@ public class InputHelper {
             client.setNickname(nick);
             client.setIsConnected(true); //The client should not be considered connected until he has a nickname
             client.write("NICK OK");
-            for (String s : ServerConnection.clients.keySet()) {
-                if (!s.equals(nick)) {
-                    client.write("JOINED " + s);
-                }
-            }
-            ServerConnection.broadcastMessage("JOINED " + nick);
         }
         else {
             client.write("NICK TAKEN");

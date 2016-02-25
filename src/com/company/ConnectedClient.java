@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Created by LanfeaR on 2016-02-07.
@@ -12,34 +13,33 @@ public class ConnectedClient implements Runnable {
     private BufferedWriter out;
     private String nickname;
     private boolean isConnected;
+    private ArrayList<String> joinedChannels;
 
     public ConnectedClient(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
+        joinedChannels = new ArrayList<>();
         this.out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
         write("NICK?");
     }
 
     @Override
     public void run() {
-        try {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         String line;
         try {
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
             InputHelper helper = new InputHelper(this);
             while ((line = in.readLine()) != null) {
                 helper.processInput(line);
             }
-            disconnect();
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
             try {
                 disconnect();
-            } catch (IOException e1) {
-                e1.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            e.printStackTrace();
         }
     }
 
@@ -49,11 +49,19 @@ public class ConnectedClient implements Runnable {
     }
 
     private void disconnect() throws IOException {
-        ServerConnection.removeClient(getNickname());
-        clientSocket.close();
-        if (isConnected()) {
-            ServerConnection.broadcastMessage("QUIT " + getNickname());
+        //Write to all clients in all channels that this client was joined into
+        //Check if channels is empty if it is remove it
+        ServerConnection.removeClient(this.nickname);
+        for (String item : this.joinedChannels) {
+            ServerConnection.getChannel(item).removeFromOnlineList(this);
+            if (ServerConnection.getChannel(item).getOnlineList().isEmpty()) {
+                ServerConnection.removeChannel(item);
+            }
+            for (ConnectedClient c : ServerConnection.getChannel(item).getOnlineList()) {
+                c.write("QUIT " + item + " " + this.nickname);
+            }
         }
+        clientSocket.close();
     }
 
     public void setNickname(String nickname) {
@@ -67,5 +75,14 @@ public class ConnectedClient implements Runnable {
     }
     public void setIsConnected(boolean isConnected) {
         this.isConnected = isConnected;
+    }
+    public void removeJoinedChannel(String channelId) {
+        joinedChannels.remove(channelId);
+    }
+    public void addJoinedChannel(String channelId) {
+        joinedChannels.add(channelId);
+    }
+    public ArrayList<String> getJoinedChannels() {
+        return this.joinedChannels;
     }
 }

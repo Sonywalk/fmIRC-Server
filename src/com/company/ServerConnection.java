@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Pattern;
 
 /**
  * Created by LanfeaR on 2016-02-07.
@@ -14,11 +13,12 @@ import java.util.regex.Pattern;
 public class ServerConnection {
     private final static int PORT = 1337;
     private final static int NUMBER_OF_CLIENTS_ALLOWED = 20;
-
+    public static HashMap<String, Channel> channels;
     public static HashMap<String, ConnectedClient> clients;
 
     public ServerConnection() {
         clients = new HashMap<>();
+        channels = new HashMap<>();
         startServer();
     }
 
@@ -62,7 +62,36 @@ public class ServerConnection {
         clients.remove(nick);
     }
 
+    public static ConnectedClient getClient(String key) {
+        return clients.get(key);
+    }
+
     public static void privateMessage(String to, String msg) throws IOException {
         clients.get(to).write(msg);
+    }
+
+    public static void channelMessage(String to, String msg) throws IOException {
+        for (ConnectedClient c : channels.get(to).getOnlineList()) {
+            c.write(msg);
+        }
+    }
+
+    //Returns the channel if already exists else it creates the channel and returns it
+    public static Channel addChannel(String id) {
+        for (String key : channels.keySet()) {
+            if (key.equals(id)) {
+                return channels.get(key);
+            }
+        }
+        Channel c = new Channel(id);
+        channels.put(id, c);
+        return c;
+    }
+    public static Channel getChannel(String key) {
+        return channels.get(key);
+    }
+
+    public static void removeChannel(String key) {
+        channels.remove(key);
     }
 }
