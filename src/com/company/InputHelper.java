@@ -17,7 +17,7 @@ public class InputHelper {
         System.out.println(input);
         //If a client is connected (has has a valid nickname) he can do other requests such as messaging
         if (client.isConnected()) {
-            if (input.startsWith("MSG")) {  //"PRIVMSG [to] :[message]" from client
+            if (input.startsWith("MSG")) {  //"MSG [to] :[message]" from client
                 messageRequest(input);
             }
             else if (input.startsWith("GET")) {
@@ -25,6 +25,9 @@ public class InputHelper {
             }
             else if (input.startsWith("SENDING")) {
                 sendingFile(input);
+            }
+            else if (input.startsWith("LISTBACK")) {
+                listback(input);
             }
             else if (input.startsWith("LIST")) {
                 list(input);
@@ -35,15 +38,24 @@ public class InputHelper {
             else if (input.startsWith("QUIT")) {
                 quit(input);
             }
+            else {
+                notRecognized(input);
+            }
         }
         else {
             if (input.startsWith("NICK")) {
                 nicknameRequest(input);
             }
             else {
-                client.write("ERROR you need a nickname, command: NICK [your_nickname]");
+                client.write("> " + input);
+                client.write("< you need a nickname, command: NICK [your_nickname]");
             }
         }
+    }
+
+    private void notRecognized(String input) throws IOException {
+        client.write("> " + input);
+        client.write("< Command not recognized");
     }
 
     private void quit(String input) throws IOException {
@@ -64,9 +76,10 @@ public class InputHelper {
         try {
             String channelId = input.replace("JOIN ", "");
             if (!channelId.startsWith("#")) {
-                client.write("ERROR channel name must start with '#'");
+                client.write("< channel name must start with '#'");
                 return;
             }
+            client.write("> " + input);
             Channel channel = ServerConnection.addChannel(channelId);
             client.addJoinedChannel(channel.getId());
             for (ConnectedClient c : channel.getOnlineList()) {
@@ -76,6 +89,7 @@ public class InputHelper {
             for (ConnectedClient c : channel.getOnlineList()) {
                 client.write("JOINED " + channel.getId() + " " + c.getNickname());
             }
+            client.write("< You joined " + channel.getId() + ".");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -127,7 +141,19 @@ public class InputHelper {
         ServerConnection.privateMessage(to, "SENDING :" + filename + " /" + size);
     }
     private void list(String input) throws IOException {
+        client.write("> " + input);
         String to = input.replace("LIST", "").trim();
         ServerConnection.privateMessage(to, "LIST " + client.getNickname());
+    }
+    private void listback(String input) {
+        try {
+            int index = input.indexOf(":");
+            String msg = input.substring(index+1, input.length());
+            String to = input.substring(0, index-1).replace("LISTBACK", "").trim();
+            ServerConnection.getClient(to).write("< " + msg);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

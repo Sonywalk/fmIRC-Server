@@ -34,13 +34,7 @@ public class FileTransfer extends SwingWorker<Void, Void> {
         byte[] buff = new byte[BUFF_SIZE];
         int len;
         while ((len = bin.read(buff)) != -1) {
-            try {
-                bout.write(buff, 0, len);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            bout.write(buff, 0, len);
         }
         bout.flush();
         bout.close();
