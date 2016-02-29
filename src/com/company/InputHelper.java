@@ -89,7 +89,7 @@ public class InputHelper {
             for (ConnectedClient c : channel.getOnlineList()) {
                 client.write("JOINED " + channel.getId() + " " + c.getNickname());
             }
-            client.write("< You joined " + channel.getId() + ".");
+            client.write("< You joined " + channel.getId());
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -120,6 +120,7 @@ public class InputHelper {
             client.setNickname(nick);
             client.setIsConnected(true); //The client should not be considered connected until he has a nickname
             client.write("NICK OK");
+            client.write("< You are now connected to: " + ServerConnection.getInetAddress().getLocalHost());
         }
         else {
             client.write("NICK TAKEN");

@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ public class ServerConnection {
     private final static int NUMBER_OF_CLIENTS_ALLOWED = 20;
     public static HashMap<String, Channel> channels;
     public static HashMap<String, ConnectedClient> clients;
+    public static ServerSocket serverSocket;
 
     public ServerConnection() {
         clients = new HashMap<>();
@@ -26,7 +28,7 @@ public class ServerConnection {
         final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(NUMBER_OF_CLIENTS_ALLOWED);
         Runnable serverTask = () -> {
             try {
-                ServerSocket serverSocket = new ServerSocket(PORT);
+                serverSocket = new ServerSocket(PORT);
                 System.out.println("Waiting for clients to connect...");
                 while (true) {
                     Socket clientSocket = serverSocket.accept();
@@ -46,6 +48,10 @@ public class ServerConnection {
         for (ConnectedClient c : clients.values()) {
             c.write(message);
         }
+    }
+
+    public static InetAddress getInetAddress() {
+        return serverSocket.getInetAddress();
     }
 
     public static boolean addClient(ConnectedClient c, String nick) {
