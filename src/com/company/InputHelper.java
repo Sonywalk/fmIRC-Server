@@ -1,5 +1,8 @@
 package com.company;
 
+import com.company.asciiart.AsciiGenerator;
+import com.company.asciiart.AsciiLogo;
+
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -102,6 +105,11 @@ public class InputHelper {
             }
             client.write("> " + input);
             Channel channel = ServerConnection.addChannel(channelId);
+
+            if (client.getJoinedChannels().contains(channel.getId())) {
+                client.write("< You have already joined " + channel.getId());
+                return;
+            }
             client.addJoinedChannel(channel.getId());
             for (ConnectedClient c : channel.getOnlineList()) {
                 c.write("JOINED " + channel.getId() + " " +  client.getNickname());
@@ -111,6 +119,13 @@ public class InputHelper {
                 client.write("JOINED " + channel.getId() + " " + c.getNickname());
             }
             client.write("< You joined " + channel.getId());
+
+            StringBuilder ascii = AsciiGenerator.getAscii(channel.getId());
+            Scanner scan = new Scanner(ascii.toString());
+            while (scan.hasNextLine()) {
+                String line = scan.nextLine();
+                client.write("MSG " + client.getNickname() + "@" + channel.getId() + " :" + line);
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -141,7 +156,7 @@ public class InputHelper {
             client.setNickname(nick);
             client.setIsConnected(true); //The client should not be considered connected until he has a nickname
             client.write("NICK OK");
-            client.write("< You are now connected to: " + ServerConnection.getInetAddress().getLocalHost());
+            client.write(AsciiLogo.ASCII_DEFAULT);
         }
         else {
             client.write("NICK TAKEN");
