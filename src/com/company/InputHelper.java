@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 /**
@@ -22,6 +23,9 @@ public class InputHelper {
             }
             else if (input.startsWith("GET")) {
                 getFile(input);
+            }
+            else if (input.startsWith("WHOIS")) {
+                whois(input);
             }
             else if (input.startsWith("SENDING")) {
                 sendingFile(input);
@@ -56,6 +60,23 @@ public class InputHelper {
     private void notRecognized(String input) throws IOException {
         client.write("> " + input);
         client.write("< Command not recognized");
+    }
+
+    private void whois(String input) throws IOException {
+        client.write("> " + input);
+        String target = input.replace("WHOIS ", "");
+        String socketAddr = ServerConnection.getClient(target).getRemoteAddress().toString();
+        String ip = socketAddr.substring(1, socketAddr.indexOf(":"));
+        StringBuilder response = WhoisHttpRequest.execute(ip);
+        if (response == null) {
+            client.write("< Could not get whois data");
+            return;
+        }
+        Scanner scan = new Scanner(response.toString()); // I have named your StringBuilder object sb
+        while (scan.hasNextLine() ){
+            String line = scan.nextLine();
+            client.write("< " + line);
+        }
     }
 
     private void quit(String input) throws IOException {

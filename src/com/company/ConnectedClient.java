@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 
 /**
@@ -64,6 +65,9 @@ public class ConnectedClient implements Runnable {
         clientSocket.close();
     }
 
+    public SocketAddress getRemoteAddress() {
+        return clientSocket.getRemoteSocketAddress();
+    }
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
