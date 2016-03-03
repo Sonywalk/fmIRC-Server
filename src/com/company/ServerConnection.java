@@ -1,5 +1,9 @@
 package com.company;
 
+import com.company.database.DatabaseConnection;
+import com.company.database.ModeratorDAO;
+import com.company.entities.ModeratorEntity;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -17,11 +21,13 @@ public class ServerConnection {
     public static HashMap<String, Channel> channels;
     public static HashMap<String, ConnectedClient> clients;
     public static ServerSocket serverSocket;
+    private ModeratorDAO moderatorDAO;
 
     public ServerConnection() {
         clients = new HashMap<>();
         channels = new HashMap<>();
         startServer();
+        moderatorDAO = new DatabaseConnection();
     }
 
     private void startServer() {

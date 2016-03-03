@@ -75,7 +75,7 @@ public class InputHelper {
             client.write("< Could not get whois data");
             return;
         }
-        Scanner scan = new Scanner(response.toString()); // I have named your StringBuilder object sb
+        Scanner scan = new Scanner(response.toString());
         while (scan.hasNextLine() ){
             String line = scan.nextLine();
             client.write("< " + line);
@@ -148,7 +148,7 @@ public class InputHelper {
 
     private void nicknameRequest(String input) throws IOException {
         String nick = input.replace("NICK ", "");
-        if (Pattern.compile("[+/\\@:\\s]+").matcher(nick).find() || nick.length() < 3) { //if nick contains any of the chars it will return true
+        if (Pattern.compile("[+/\\#$<>@:\\s]+").matcher(nick).find() || nick.length() < 3) { //if nick contains any of the chars it will return true
             client.write("NICK TAKEN");
             return;
         }
