@@ -5,7 +5,7 @@ import com.company.entities.ModeratorEntity;
 /**
  * Created by LogiX on 2016-03-03.
  */
-public interface fmIRCDAO {
+public interface ModeratorDAO {
 
     boolean createModerator(ModeratorEntity moderator);
     void deleteModerator(ModeratorEntity moderator);

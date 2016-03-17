@@ -2,6 +2,8 @@ package com.company;
 
 import com.company.asciiart.AsciiGenerator;
 import com.company.asciiart.AsciiLogo;
+import com.company.database.DatabaseConnection;
+import com.company.database.ModeratorDAO;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -12,9 +14,11 @@ import java.util.regex.Pattern;
  */
 public class InputHelper {
     private ConnectedClient client;
+    private ModeratorDAO moderatorDAO;
 
     public InputHelper(ConnectedClient client) throws IOException {
         this.client = client;
+        moderatorDAO = new DatabaseConnection();
     }
 
     public void processInput(String input) throws IOException {
@@ -29,6 +33,9 @@ public class InputHelper {
             }
             else if (input.startsWith("WHOIS")) {
                 whois(input);
+            }
+            else if (input.startsWith("KICK")) {
+                kick(input);
             }
             else if (input.startsWith("SENDING")) {
                 sendingFile(input);
@@ -63,6 +70,37 @@ public class InputHelper {
     private void notRecognized(String input) throws IOException {
         client.write("> " + input);
         client.write("< Command not recognized");
+    }
+
+    private void kick(String input) throws IOException { //KICK [nickname] [channel]
+
+        client.write("> " + input);
+        String[] parts = input.replace("KICK ", "").split(" ");
+        String nickname = parts[0];
+        String channelIn = parts[1];
+
+        Channel channel = ServerConnection.getChannel(channelIn);
+        if (channel == null) {
+            client.write("< Channel does not exist!");
+            return;
+        }
+
+        //Returns null if moderator for channel with nickname not exists
+        if (moderatorDAO.fetchModerator(client.getNickname(), channel.getId()) != null) {
+            ConnectedClient clientToBeKicked = ServerConnection.getClient(nickname);
+            if (clientToBeKicked == null) {
+                client.write("< No user with that nickname found!");
+                return;
+            }
+
+            clientToBeKicked.removeJoinedChannel(channel.getId());
+            channel.removeFromOnlineList(clientToBeKicked);
+            ServerConnection.channelMessage(channel.getId(), "QUIT " + channel.getId() + " " + nickname);
+            clientToBeKicked.write("< You have been kicked from " + channel.getId());
+        }
+        else {
+            client.write("< You are not a moderator!");
+        }
     }
 
     private void whois(String input) throws IOException {
@@ -104,6 +142,8 @@ public class InputHelper {
                 return;
             }
             client.write("> " + input);
+
+            //Returns the channel if it already existed
             Channel channel = ServerConnection.addChannel(channelId);
 
             if (client.getJoinedChannels().contains(channel.getId())) {
