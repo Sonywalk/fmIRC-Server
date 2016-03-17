@@ -1,13 +1,12 @@
 package com.company;
 
-import com.company.database.DatabaseConnection;
-import com.company.database.ModeratorDAO;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,10 +19,12 @@ public class ServerConnection {
     public static HashMap<String, Channel> channels;
     public static HashMap<String, ConnectedClient> clients;
     public static ServerSocket serverSocket;
+    private static List<ConnectedClient> tranferInProgress;
 
     public ServerConnection() {
         clients = new HashMap<>();
         channels = new HashMap<>();
+        tranferInProgress = new ArrayList<>();
         startServer();
     }
 
@@ -65,6 +66,17 @@ public class ServerConnection {
         }
         clients.put(nick, c);
         return true;
+    }
+
+    public static void removeTransferringClient(ConnectedClient client){
+        tranferInProgress.remove(client);
+    }
+    public static void addTransferringClient(ConnectedClient client){
+        tranferInProgress.add(client);
+    }
+
+    public static boolean clientTransferring(ConnectedClient client){
+        return tranferInProgress.contains(client);
     }
 
     public static void removeClient(String nick) {

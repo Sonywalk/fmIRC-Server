@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 public class InputHelper {
     private ConnectedClient client;
     private ModeratorDAO moderatorDAO;
-
     public InputHelper(ConnectedClient client) throws IOException {
         this.client = client;
         moderatorDAO = new DatabaseConnection();
@@ -227,44 +226,67 @@ public class InputHelper {
 
     private void error(String input) throws IOException{
         int index = input.indexOf(":");
-        String error = input.replace("ERROR ", "").substring(0, index-1);
+        String error = input.substring(0, index-1).replace("ERROR ", "");
         String receiver = input.substring(index + 1, input.length());
         ConnectedClient c = ServerConnection.getClient(receiver);
         c.write("< " + error);
     }
 
     private void getFile(String input) throws IOException {
-        FileTransfer t = new FileTransfer();
-        t.execute();
+
+
         int index = input.indexOf(":");
+
         if(index == -1 ) {
-            client.write("Invalid command. Use command HELP for syntax for GET.");
+            client.write("< Invalid command. Use command HELP for syntax for GET.");
             return;
         }
 
         String filename = input.substring(index + 1, input.length());
         if(filename.length() == 0){
-            client.write("Filename is empty. ");
+            client.write("< Filename is empty. ");
             return;
         }
 
         String to = input.substring(0, index).replace("GET", "").trim();
-        if(ServerConnection.getClient(to) == null){
-            client.write("Nickname does not exist");
+
+        if(ServerConnection.clientTransferring(client)){
+            client.write("< You are already downloading a file. Please wait");
             return;
         }
+
+        if(ServerConnection.getClient(to) == null){
+            client.write("< Nickname does not exist");
+            return;
+        }
+
+        if(ServerConnection.clientTransferring(ServerConnection.getClient(to))){
+            client.write("< " + to + " is busy with another tranfer. Please wait.");
+            return;
+        }
+
+
+        FileTransfer t = new FileTransfer(client, ServerConnection.getClient(to));
+        t.execute();
+
         ServerConnection.privateMessage(to, "GET " + client.getNickname() + " :" + filename);
     }
     private void sendingFile(String input) throws IOException {
         int index = input.indexOf(":");
         String filename = input.substring(index+1, input.indexOf("/")).trim();
-        String size = Integer.parseInt(input.substring(input.indexOf("/")+1, input.length())) / 1024 + " KB";
+        String size = input.substring(input.indexOf("/")+1, input.length());
         String to = input.substring(0, index).replace("SENDING", "").trim();
         ServerConnection.privateMessage(to, "SENDING :" + filename + " /" + size);
+        ServerConnection.addTransferringClient(client);
     }
     private void list(String input) throws IOException {
         client.write("> " + input);
+
         String to = input.replace("LIST", "").trim();
+        if(to.length() <= 0 || ServerConnection.getClient(to) == null){
+            client.write("< Nickname \"" + to + "\" does not exist.");
+            return;
+        }
         ServerConnection.privateMessage(to, "LIST " + client.getNickname());
     }
     private void listback(String input) {
