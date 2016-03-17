@@ -28,6 +28,9 @@ public class InputHelper {
             if (input.startsWith("MSG")) {  //"MSG [to] :[message]" from client
                 messageRequest(input);
             }
+            else if(input.startsWith("ERROR")){
+                error(input);
+            }
             else if (input.startsWith("GET")) {
                 getFile(input);
             }
@@ -80,17 +83,14 @@ public class InputHelper {
         client.write("> HELP");
         client.write("< Available commands: ");
         client.write("< Join channel: JOIN #{channelname} ");
-        client.write("< Get information about user: WHOIS {username} ");
+        client.write("< Get information about user: WHOIS {nickname} ");
         client.write("< Quit program: QUIT");
-        client.write("< List available files: LIST");
-        client.write("< Get file: GET {filename}");
+        client.write("< List available files from user: LIST {nickname}");
+        client.write("< Get file from user: GET {nickname} :{filename}");
         client.write("< Put files for sharing in \"shared\" directory");
         client.write("");
         client.write("< If moderator: ");
-        client.write("< Kick user from channel: KICK {username} #{channelname}");
-
-
-
+        client.write("< Kick user from channel: KICK {nickname} #{channelname}");
 
     }
 
@@ -224,18 +224,41 @@ public class InputHelper {
             client.write("NICK TAKEN");
         }
     }
+
+    private void error(String input) throws IOException{
+        int index = input.indexOf(":");
+        String error = input.replace("ERROR ", "").substring(0, index-1);
+        String receiver = input.substring(index + 1, input.length());
+        ConnectedClient c = ServerConnection.getClient(receiver);
+        c.write("< " + error);
+    }
+
     private void getFile(String input) throws IOException {
         FileTransfer t = new FileTransfer();
         t.execute();
         int index = input.indexOf(":");
+        if(index == -1 ) {
+            client.write("Invalid command. Use command HELP for syntax for GET.");
+            return;
+        }
+
         String filename = input.substring(index + 1, input.length());
+        if(filename.length() == 0){
+            client.write("Filename is empty. ");
+            return;
+        }
+
         String to = input.substring(0, index).replace("GET", "").trim();
+        if(ServerConnection.getClient(to) == null){
+            client.write("Nickname does not exist");
+            return;
+        }
         ServerConnection.privateMessage(to, "GET " + client.getNickname() + " :" + filename);
     }
     private void sendingFile(String input) throws IOException {
         int index = input.indexOf(":");
         String filename = input.substring(index+1, input.indexOf("/")).trim();
-        String size = input.substring(input.indexOf("/")+1, input.length());
+        String size = Integer.parseInt(input.substring(input.indexOf("/")+1, input.length())) / 1024 + " KB";
         String to = input.substring(0, index).replace("SENDING", "").trim();
         ServerConnection.privateMessage(to, "SENDING :" + filename + " /" + size);
     }
