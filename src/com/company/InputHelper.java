@@ -164,7 +164,7 @@ public class InputHelper {
             }
             client.write("> " + input);
 
-            //Returns the channel if it already existed
+            //Returns the channel if it already exists
             Channel channel = ServerConnection.addChannel(channelId);
 
             if (client.getJoinedChannels().contains(channel.getId())) {
@@ -226,57 +226,51 @@ public class InputHelper {
 
     private void error(String input) throws IOException{
         int index = input.indexOf(":");
-        String error = input.substring(0, index-1).replace("ERROR ", "");
+        String error = input.substring(0, index - 1).replace("ERROR ", "");
         String receiver = input.substring(index + 1, input.length());
         ConnectedClient c = ServerConnection.getClient(receiver);
         c.write("< " + error);
     }
 
     private void getFile(String input) throws IOException {
-
-
+        client.write("< " + input);
         int index = input.indexOf(":");
+        String filename = input.substring(index + 1, input.length());
+        String to = input.substring(0, index).replace("GET", "").trim();
 
-        if(index == -1 ) {
+        if(index == -1) {
             client.write("< Invalid command. Use command HELP for syntax for GET.");
             return;
         }
-
-        String filename = input.substring(index + 1, input.length());
         if(filename.length() == 0){
-            client.write("< Filename is empty. ");
+            client.write("< Filename is empty.");
             return;
         }
-
-        String to = input.substring(0, index).replace("GET", "").trim();
-
         if(ServerConnection.clientTransferring(client)){
             client.write("< You are already downloading a file. Please wait");
             return;
         }
-
         if(ServerConnection.getClient(to) == null){
             client.write("< Nickname does not exist");
             return;
         }
-
         if(ServerConnection.clientTransferring(ServerConnection.getClient(to))){
-            client.write("< " + to + " is busy with another tranfer. Please wait.");
+            client.write("< " + to + " is busy with another transfer. Please wait.");
             return;
         }
 
-
-        FileTransfer t = new FileTransfer(client, ServerConnection.getClient(to));
-        t.execute();
-
-        ServerConnection.privateMessage(to, "GET " + client.getNickname() + " :" + filename);
+        int port = 49152 + (int)(Math.random() * ((65535 - 49152) + 1));
+        //Pass the two clients to transfer (used for remove them from inProgress when the job is done)
+        new FileTransfer(client, ServerConnection.getClient(to), port).execute();
+        ServerConnection.privateMessage(to, "GET " + client.getNickname() + " :" + filename + " [" + port + "]");
     }
     private void sendingFile(String input) throws IOException {
         int index = input.indexOf(":");
         String filename = input.substring(index+1, input.indexOf("/")).trim();
-        String size = input.substring(input.indexOf("/")+1, input.length());
+        String size = input.substring(input.indexOf("/")+1, input.indexOf("[")-1);
         String to = input.substring(0, index).replace("SENDING", "").trim();
-        ServerConnection.privateMessage(to, "SENDING :" + filename + " /" + size);
+        String port = input.substring(input.indexOf("[")+1, input.indexOf("]"));
+        ServerConnection.privateMessage(to, "SENDING :" + filename + " /" + size + " [" + port + "]");
         ServerConnection.addTransferringClient(client);
     }
     private void list(String input) throws IOException {

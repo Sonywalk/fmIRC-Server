@@ -19,12 +19,12 @@ public class ServerConnection {
     public static HashMap<String, Channel> channels;
     public static HashMap<String, ConnectedClient> clients;
     public static ServerSocket serverSocket;
-    private static List<ConnectedClient> tranferInProgress;
+    private static List<ConnectedClient> transferInProgress;
 
     public ServerConnection() {
         clients = new HashMap<>();
         channels = new HashMap<>();
-        tranferInProgress = new ArrayList<>();
+        transferInProgress = new ArrayList<>();
         startServer();
     }
 
@@ -69,14 +69,14 @@ public class ServerConnection {
     }
 
     public static void removeTransferringClient(ConnectedClient client){
-        tranferInProgress.remove(client);
+        transferInProgress.remove(client);
     }
     public static void addTransferringClient(ConnectedClient client){
-        tranferInProgress.add(client);
+        transferInProgress.add(client);
     }
 
     public static boolean clientTransferring(ConnectedClient client){
-        return tranferInProgress.contains(client);
+        return transferInProgress.contains(client);
     }
 
     public static void removeClient(String nick) {
