@@ -52,6 +52,9 @@ public class InputHelper {
             else if (input.startsWith("QUIT")) {
                 quit(input);
             }
+            else if(input.startsWith(("HELP"))){
+                help();
+            }
             else {
                 notRecognized(input);
             }
@@ -70,6 +73,25 @@ public class InputHelper {
     private void notRecognized(String input) throws IOException {
         client.write("> " + input);
         client.write("< Command not recognized");
+    }
+
+
+    private void help() throws IOException{
+        client.write("> HELP");
+        client.write("< Available commands: ");
+        client.write("< Join channel: JOIN #{channelname} ");
+        client.write("< Get information about user: WHOIS {username} ");
+        client.write("< Quit program: QUIT");
+        client.write("< List available files: LIST");
+        client.write("< Get file: GET {filename}");
+        client.write("< Put files for sharing in \"shared\" directory");
+        client.write("");
+        client.write("< If moderator: ");
+        client.write("< Kick user from channel: KICK {username} #{channelname}");
+
+
+
+
     }
 
     private void kick(String input) throws IOException { //KICK [nickname] [channel]
