@@ -83,7 +83,6 @@ public class InputHelper {
         client.write("< Available commands: ");
         client.write("< Join channel: JOIN #{channelname} ");
         client.write("< Get information about user: WHOIS {nickname} ");
-        client.write("< Quit program: QUIT");
         client.write("< List available files from user: LIST {nickname}");
         client.write("< Get file from user: GET {nickname} :{filename}");
         client.write("< Put files for sharing in \"shared\" directory");
@@ -194,16 +193,21 @@ public class InputHelper {
     }
 
     private void messageRequest(String input) throws IOException {
-        int index = input.indexOf(":");
-        String to = input.substring(0, index).replace("MSG", "").trim();
-        String message = input.substring(index + 1, input.length());
-        String output = "MSG " + client.getNickname() + "@" + to + " :" + message; //respond to clients with: "MSG [from]@[to] :[message]
-        if (to.startsWith("#")) {
-            ServerConnection.channelMessage(to, output);
+        try {
+            int index = input.indexOf(":");
+            String to = input.substring(0, index).replace("MSG", "").trim();
+            String message = input.substring(index + 1, input.length());
+            String output = "MSG " + client.getNickname() + "@" + to + " :" + message; //respond to clients with: "MSG [from]@[to] :[message]
+            if (to.startsWith("#")) {
+                ServerConnection.channelMessage(to, output);
+            }
+            else {
+                ServerConnection.privateMessage(to, output);
+                client.write(output);
+            }
         }
-        else {
-            ServerConnection.privateMessage(to, output);
-            client.write(output);
+        catch(Exception e) {
+            client.write("< Invalid syntax for MSG");
         }
     }
 
@@ -267,9 +271,9 @@ public class InputHelper {
     private void sendingFile(String input) throws IOException {
         int index = input.indexOf(":");
         String filename = input.substring(index+1, input.indexOf("/")).trim();
-        String size = input.substring(input.indexOf("/")+1, input.indexOf("[")-1);
+        String size = input.substring(input.indexOf("/") + 1, input.indexOf("[") - 1);
         String to = input.substring(0, index).replace("SENDING", "").trim();
-        String port = input.substring(input.indexOf("[")+1, input.indexOf("]"));
+        String port = input.substring(input.indexOf("[") + 1, input.indexOf("]"));
         ServerConnection.privateMessage(to, "SENDING :" + filename + " /" + size + " [" + port + "]");
         ServerConnection.addTransferringClient(client);
     }
