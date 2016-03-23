@@ -71,14 +71,10 @@ public class FileTransfer extends SwingWorker<Void, Void> {
             if (socket != null) {
                 socket.close();
             }
+            ServerConnection.removeTransferringClient(connectedClient1);
+            ServerConnection.removeTransferringClient(connectedClient2);
+            System.out.println("Transfer is done");
         }
         return null;
-    }
-
-    @Override
-    protected void done(){
-        System.out.println("Transfer is done");
-        ServerConnection.removeTransferringClient(connectedClient1);
-        ServerConnection.removeTransferringClient(connectedClient2);
     }
 }
