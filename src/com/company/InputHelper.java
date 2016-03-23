@@ -236,37 +236,46 @@ public class InputHelper {
         c.write("< " + error);
     }
 
-    private void getFile(String input) throws IOException {
-        client.write("< " + input);
-        int index = input.indexOf(":");
-        String filename = input.substring(index + 1, input.length());
-        String to = input.substring(0, index).replace("GET", "").trim();
+    private void getFile(String input) {
+        try {
+            client.write("< " + input);
+            int index = input.indexOf(":");
+            String filename = input.substring(index + 1, input.length());
+            String to = input.substring(0, index).replace("GET", "").trim();
 
-        if(index == -1) {
-            client.write("< Invalid command. Use command HELP for syntax for GET.");
-            return;
-        }
-        if(filename.length() == 0){
-            client.write("< Filename is empty.");
-            return;
-        }
-        if(ServerConnection.clientTransferring(client)){
-            client.write("< You are already downloading a file. Please wait");
-            return;
-        }
-        if(ServerConnection.getClient(to) == null){
-            client.write("< Nickname does not exist");
-            return;
-        }
-        if(ServerConnection.clientTransferring(ServerConnection.getClient(to))){
-            client.write("< " + to + " is busy with another transfer. Please wait.");
-            return;
-        }
+            if(index == -1) {
+                client.write("< Invalid command. Use command HELP for syntax for GET.");
+                return;
+            }
+            if(filename.length() == 0){
+                client.write("< Filename is empty.");
+                return;
+            }
+            if(ServerConnection.clientTransferring(client)){
+                client.write("< Transfer in progress, Please wait.");
+                return;
+            }
+            if(ServerConnection.getClient(to) == null){
+                client.write("< Nickname does not exist");
+                return;
+            }
+            if(ServerConnection.clientTransferring(ServerConnection.getClient(to))){
+                client.write("< Transfer in progress, Please wait.");
+                return;
+            }
 
-        int port = 49152 + (int)(Math.random() * ((65535 - 49152) + 1));
-        //Pass the two clients to transfer (used for remove them from inProgress when the job is done)
-        new FileTransfer(client, ServerConnection.getClient(to), port).execute();
-        ServerConnection.privateMessage(to, "GET " + client.getNickname() + " :" + filename + " [" + port + "]");
+            int port = 49152 + (int)(Math.random() * ((65535 - 49152) + 1));
+            //Pass the two clients to transfer (used for remove them from inProgress when the job is done)
+            new FileTransfer(client, ServerConnection.getClient(to), port).execute();
+            ServerConnection.privateMessage(to, "GET " + client.getNickname() + " :" + filename + " [" + port + "]");
+        }
+        catch (Exception e) {
+            try {
+                client.write("< Incorrect syntax for command GET");
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
     }
     private void sendingFile(String input) throws IOException {
         int index = input.indexOf(":");
