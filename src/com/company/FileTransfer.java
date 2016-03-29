@@ -45,7 +45,6 @@ public class FileTransfer extends SwingWorker<Void, Void> {
             int len;
             while ((len = bin.read(buff)) != -1) {
                 bout.write(buff, 0, len);
-                System.out.println(len);
             }
         }
         catch (SocketTimeoutException e) {

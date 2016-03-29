@@ -233,6 +233,7 @@ public class InputHelper {
         String error = input.substring(0, index - 1).replace("ERROR ", "");
         String receiver = input.substring(index + 1, input.length());
         ConnectedClient c = ServerConnection.getClient(receiver);
+        client.write("< " + error);
         c.write("< " + error);
     }
 
