@@ -1,8 +1,5 @@
 package com.company.entities;
 
-/**
- * Created by LogiX on 2016-03-03.
- */
 public class ModeratorEntity {
 
     private int id;

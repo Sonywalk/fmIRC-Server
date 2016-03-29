@@ -2,9 +2,6 @@ package com.company;
 
 import java.util.ArrayList;
 
-/**
- * Created by LogiX on 2016-02-24.
- */
 public class Channel {
     private String id;
     private ArrayList<ConnectedClient> onlineList;

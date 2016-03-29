@@ -9,9 +9,6 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-/**
- * Created by LanfeaR on 2016-02-07.
- */
 public class InputHelper {
     private ConnectedClient client;
     private ModeratorDAO moderatorDAO;

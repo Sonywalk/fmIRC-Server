@@ -6,9 +6,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
-/**
- * Created by LogiX on 2016-03-01.
- */
 public class AsciiGenerator {
 
     public static StringBuilder getAscii(String text) {
