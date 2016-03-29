@@ -26,8 +26,9 @@ public class DatabaseConnection implements ModeratorDAO {
                     "server VARCHAR(50))";
             int result = statement.executeUpdate(sql);
 
+            System.out.println(result);
             //If the table was created insert first moderator
-            if (result > 0) {
+            if (statement.executeUpdate("SELECT * FROM Moderators") == 0) {
                 sql = "INSERT INTO Moderators (nickname, channel, password) VALUES ('lanfear', '#molk', 'kanske')";
                 statement.executeUpdate(sql);
             }

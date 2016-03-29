@@ -3,6 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/fmIRC_Server_jar</output-path>
     <root id="archive" name="fmIRC-Server.jar">
       <element id="module-output" name="fmIRC-Server" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/sqlite-jdbc-3.8.11.2.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
